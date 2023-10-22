@@ -27,6 +27,7 @@ object Version {
     val ktorn = "3.6.0"
     val h2 = "2.2.220"
     val flyway = "9.22.3"
+    val mockK = "1.13.8"
 }
 
 dependencies {
@@ -39,6 +40,7 @@ dependencies {
     implementation("org.ktorm:ktorm-core:${Version.ktorn}")
     implementation("com.h2database:h2:${Version.h2}")
     implementation("org.flywaydb:flyway-core:${Version.flyway}")
+    testImplementation("io.mockk:mockk:${Version.mockK}")
 
     testImplementation(kotlin("test"))
 }

@@ -9,6 +9,6 @@ fun migrate(url: String) {
     Flyway.configure().dataSource(url, null, null).load().migrate()
 }
 
-fun convertToTimestamp(input: ZonedDateTime) = input.toInstant()
+fun convertToTimestamp(input: ZonedDateTime): Instant = input.toInstant()
 
-fun converToToZonedDateTime(input: Instant) = ZonedDateTime.ofInstant(input, Clock.systemUTC().zone)
+fun convertToZonedDateTime(input: Instant): ZonedDateTime = ZonedDateTime.ofInstant(input, Clock.systemUTC().zone)

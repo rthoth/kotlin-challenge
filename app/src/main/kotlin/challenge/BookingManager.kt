@@ -9,9 +9,9 @@ interface BookingManager {
 
     companion object {
 
-        val DEFAULT_TIME_GAP = Duration.ofHours(2)
+        private val DEFAULT_TIME_GAP: Duration = Duration.ofHours(2)
 
-        fun create(bookingRepository: BookingRepository): BookingManager =
+        fun create(bookingRepository: BookingRepository, timeGap: Duration = DEFAULT_TIME_GAP): BookingManager =
             object : BookingManager {
 
                 override suspend fun book(booking: Booking): Booking {
@@ -19,7 +19,7 @@ interface BookingManager {
                         booking.mobilePhoneId,
                         booking.starting,
                         booking.ending,
-                        DEFAULT_TIME_GAP
+                        timeGap
                     )
 
                     if (previous.isEmpty()) {

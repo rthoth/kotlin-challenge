@@ -9,7 +9,6 @@ import org.ktorm.schema.timestamp
 import org.ktorm.schema.varchar
 import java.time.Duration
 import java.time.Instant
-import java.time.ZoneId
 import java.time.ZonedDateTime
 
 interface BookingRepository {
@@ -74,8 +73,8 @@ interface BookingRepository {
                 id = stored.id,
                 mobilePhoneId = stored.phoneId,
                 memberId = stored.memberId,
-                starting = converToToZonedDateTime(stored.starting),
-                ending = converToToZonedDateTime(stored.ending)
+                starting = convertToZonedDateTime(stored.starting),
+                ending = convertToZonedDateTime(stored.ending)
             )
         }
     }
