@@ -24,6 +24,9 @@ object Version {
     val akka = "2.8.5"
     val akkaHttp = "10.5.3"
     val orientdb = "3.2.23"
+    val ktorn = "3.6.0"
+    val h2 = "2.2.220"
+    val flyway = "9.22.3"
 }
 
 dependencies {
@@ -32,8 +35,10 @@ dependencies {
     implementation("com.typesafe.akka:akka-actor-typed_${Version.scalaBinary}:${Version.akka}")
     implementation("com.typesafe.akka:akka-stream_${Version.scalaBinary}:${Version.akka}")
     implementation("com.typesafe.akka:akka-http_${Version.scalaBinary}:${Version.akkaHttp}")
-    implementation("com.orientechnologies:orientdb-client:${Version.orientdb}")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("org.ktorm:ktorm-core:${Version.ktorn}")
+    implementation("com.h2database:h2:${Version.h2}")
+    implementation("org.flywaydb:flyway-core:${Version.flyway}")
 
     testImplementation(kotlin("test"))
 }

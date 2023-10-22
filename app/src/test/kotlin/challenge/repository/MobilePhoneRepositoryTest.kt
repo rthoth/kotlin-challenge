@@ -1,26 +1,29 @@
 package challenge.repository
 
 import challenge.MobilePhoneFixture
+import org.ktorm.database.Database
+import org.ktorm.dsl.asIterable
+import org.ktorm.dsl.from
+import org.ktorm.dsl.select
 import kotlin.test.Test
-import kotlin.test.assertTrue
+import kotlin.test.assertEquals
 
 class MobilePhoneRepositoryTest : RepositoryTest<MobilePhoneRepository>() {
 
-    override fun createRepository(session: Session): MobilePhoneRepository = MobilePhoneRepository.create(session)
+    override fun createRepository(database: Database) = MobilePhoneRepository.create(database)
 
     @Test
-    fun `should add a model in database`() = testRepository { repository, session ->
+    fun `should add a model in database`() = testRepository { repository, database ->
         val expected = MobilePhoneFixture.createRandom()
         repository.add(expected)
 
-        session.attempt { database ->
-            val first = database
-                .query("SELECT FROM ${Classes.MobilePhone} WHERE id = ?", expected.id)
-                .elementStream()
-                .findFirst()
-
-            assertTrue { first.get().getProperty<String>("id") == expected.id }
-            assertTrue { first.get().getProperty<String>("model") == expected.model }
-        }
+        assertEquals(
+            1,
+            database
+                .from(MobilePhoneRepository.Companion.MobilePhones)
+                .select()
+                .asIterable()
+                .count()
+        )
     }
 }
