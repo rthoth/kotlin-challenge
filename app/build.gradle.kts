@@ -8,7 +8,7 @@
 
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
-    id("org.jetbrains.kotlin.jvm") version "1.9.10"
+    kotlin("jvm") version "1.9.10"
 
     // Apply the application plugin to add support for building a CLI application in Java.
     application
@@ -19,9 +19,23 @@ repositories {
     mavenCentral()
 }
 
+object Version {
+    val scalaBinary = "2.13"
+    val akka = "2.8.5"
+    val akkaHttp = "10.5.3"
+    val orientdb = "3.2.23"
+}
+
 dependencies {
     // This dependency is used by the application.
-//    implementation("com.google.guava:guava:32.1.1-jre")
+    // implementation("com.google.guava:guava:32.1.1-jre")
+    implementation("com.typesafe.akka:akka-actor-typed_${Version.scalaBinary}:${Version.akka}")
+    implementation("com.typesafe.akka:akka-stream_${Version.scalaBinary}:${Version.akka}")
+    implementation("com.typesafe.akka:akka-http_${Version.scalaBinary}:${Version.akkaHttp}")
+    implementation("com.orientechnologies:orientdb-client:${Version.orientdb}")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+
+    testImplementation(kotlin("test"))
 }
 
 testing {
