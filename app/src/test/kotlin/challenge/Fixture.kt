@@ -2,6 +2,7 @@ package challenge
 
 import java.time.Clock
 import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 import java.util.concurrent.ThreadLocalRandom
 
@@ -9,6 +10,7 @@ fun randomId() = UUID.randomUUID().toString()
 
 fun randomZonedDateTime(): ZonedDateTime =
     ZonedDateTime.now(Clock.systemUTC()).plusHours(ThreadLocalRandom.current().nextLong(-3, 3))
+        .truncatedTo(ChronoUnit.HOURS)
 
 object MobilePhoneFixture {
 

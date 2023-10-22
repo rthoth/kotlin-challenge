@@ -18,8 +18,7 @@ class MobilePhoneRepositoryTest : RepositoryTest<MobilePhoneRepository>() {
         repository.add(expected)
 
         assertEquals(
-            1,
-            database
+            1, database
                 .from(MobilePhoneRepository.Companion.MobilePhones)
                 .select()
                 .asIterable()
