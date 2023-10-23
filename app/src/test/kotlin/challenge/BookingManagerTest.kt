@@ -24,6 +24,46 @@ class BookingManagerTest : ChallengeTest() {
     }
 
     @Test
+    fun `should add a mobile phone in repository`() {
+        val (manager, repository, _) = newContext()
+        val now = createRandomInstant()
+        val toBeAdded = MobilePhoneFixture.createRandom().copy(bookedInstant = now, personName = "name-${randomId()}")
+        val expected = toBeAdded.copy(bookedInstant = null, personName = null)
+
+        coEvery { repository.add(expected) } returns expected
+
+        assertEquals(expected, runBlocking { manager.add(toBeAdded) })
+    }
+
+    @Test
+    fun `should check availability (available)`() {
+        val (manager, repository, _) = newContext()
+        val expected = MobilePhoneFixture.createRandom()
+            .copy(bookedInstant = null, personName = null)
+
+        coEvery {
+            repository.get(expected.id)
+        } returns Optional.of(expected)
+
+        assertEquals(MobilePhoneAvailability.Available(expected), runBlocking { manager.available(expected.id) })
+    }
+
+    @Test
+    fun `should check availability (unavailable)`() {
+        val (manager, repository, _) = newContext()
+        val expected = MobilePhoneFixture.createRandom()
+            .copy(bookedInstant = createRandomInstant(), personName = "person-${randomId()}")
+
+        coEvery {
+            repository.get(expected.id)
+        } returns Optional.of(expected)
+
+        assertEquals(
+            MobilePhoneAvailability.Unavailable(expected, expected.bookedInstant!!, expected.personName!!),
+            runBlocking { manager.available(expected.id) })
+    }
+
+    @Test
     fun `should accept a booking`() = runBlocking {
         val (manager, repository, instantFactory) = newContext()
         val expectedBooking = BookingFixture.createRandom()
