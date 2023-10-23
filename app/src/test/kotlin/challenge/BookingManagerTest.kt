@@ -48,7 +48,7 @@ class BookingManagerTest : ChallengeTest() {
     @Test
     fun `should reject a booking when the mobile phone is already booked`() {
         runBlocking {
-            val (manager, repository, instantFactory) = newContext()
+            val (manager, repository, _) = newContext()
             val expectedBooking = BookingFixture.createRandom()
             val mobilePhone = MobilePhoneFixture.createRandom().copy(
                 id = expectedBooking.mobilePhoneId,
@@ -67,7 +67,7 @@ class BookingManagerTest : ChallengeTest() {
     @Test
     fun `should return a mobile phone`() {
         runBlocking {
-            val (manager, repository, instantFactory) = newContext()
+            val (manager, repository, _) = newContext()
             val toBeReturned = MobilePhoneFixture.createRandom().copy(
                 bookedInstant = createRandomInstant(), personName = "somebody-${randomId()}"
             )
@@ -100,11 +100,7 @@ class BookingManagerTest : ChallengeTest() {
         assertEquals(
             listOf(
                 MobilePhoneAvailability.Available(availableMobilePhone),
-                MobilePhoneAvailability.Unavailable(
-                    unavailableMobilePhone,
-                    unavailableMobilePhone.bookedInstant!!,
-                    unavailableMobilePhone.personName!!
-                )
+                MobilePhoneAvailability.Unavailable(unavailableMobilePhone)
             ), info
         )
     }

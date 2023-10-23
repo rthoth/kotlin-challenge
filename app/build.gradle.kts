@@ -74,5 +74,5 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass.set("challenge.AppKt")
+    mainClass.set("challenge.MainKt")
 }
