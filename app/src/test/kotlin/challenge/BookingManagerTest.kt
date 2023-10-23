@@ -85,7 +85,7 @@ class BookingManagerTest : ChallengeTest() {
             repository.update(expectedMobilePhone)
         } returns expectedMobilePhone
 
-        assertEquals(BookingResult.Booked(expectedMobilePhone, expectedBooking), manager.book(expectedBooking))
+        assertEquals(BookingResult.Booked(expectedMobilePhone, expectedBooking), manager.booked(expectedBooking))
     }
 
     @Test
@@ -104,7 +104,25 @@ class BookingManagerTest : ChallengeTest() {
                 repository.get(expectedBooking.mobilePhoneId)
             } returns Optional.of(mobilePhone)
 
-            assertEquals(BookingResult.Unavailable(mobilePhone, expectedBooking), manager.book(expectedBooking))
+            assertEquals(BookingResult.Unavailable(mobilePhone, expectedBooking), manager.booked(expectedBooking))
+        }
+    }
+
+    @Test
+    fun `should return a mobile phone`() {
+        runBlocking {
+            val (manager, repository, instantFactory) = newContext()
+            val toBeReturned = MobilePhoneFixture
+                .createRandom().copy(
+                    bookedInstant = createRandomInstant(),
+                    personName = "somebody-${randomId()}"
+                )
+            val expected = toBeReturned.copy(bookedInstant = null, personName = null)
+
+            coEvery { repository.get(toBeReturned.id) } returns Optional.of(toBeReturned)
+            coEvery { repository.update(expected) } returns expected
+
+            assertEquals(expected, runBlocking { manager.returned(toBeReturned.id) }.get())
         }
     }
 }
