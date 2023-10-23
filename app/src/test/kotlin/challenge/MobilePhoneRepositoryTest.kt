@@ -1,10 +1,7 @@
 package challenge
 
 import org.ktorm.database.Database
-import org.ktorm.dsl.asIterable
-import org.ktorm.dsl.from
 import org.ktorm.dsl.insert
-import org.ktorm.dsl.select
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -12,39 +9,43 @@ class MobilePhoneRepositoryTest : RepositoryTest<MobilePhoneRepository>() {
 
     override fun createRepository(database: Database) = MobilePhoneRepository.create(database)
 
-    @Test
-    fun `should add a mobile phone in database`() = withRepository { repository, database ->
-        val expected = MobilePhoneFixture.createRandom()
-        repository.add(expected)
-
-        assertEquals(
-            1, database.from(MobilePhoneRepository.Companion.MobilePhones).select().asIterable().count()
-        )
+    private fun Database.insert(mobilePhone: MobilePhone) {
+        this.insert(MobilePhoneRepository.Companion.MobilePhones) {
+            set(it.id, mobilePhone.id)
+            set(it.model, mobilePhone.model)
+            set(it.bookedInstant, mobilePhone.bookedInstant)
+            set(it.personName, mobilePhone.personName)
+        }
     }
 
     @Test
     fun `should get a mobile phone from database`() = withRepository { repository, database ->
         val expected = MobilePhoneFixture.createRandom()
-        database.insert(MobilePhoneRepository.Companion.MobilePhones) {
-            set(it.id, expected.id)
-            set(it.model, expected.model)
-            set(it.bookedInstant, expected.bookedInstant)
-            set(it.personName, expected.personName)
-        }
-
+        database.insert(expected)
         assertEquals(expected, repository.get(expected.id).get())
     }
 
     @Test
-    fun `should update a mobile phone in database`() = withRepository { repository, database ->
-        val priorMobilePhone = MobilePhoneFixture.createRandom()
-        repository.add(priorMobilePhone)
+    fun `should update a mobile phone in database(set bookedInstant and personName not null)`() {
+        withRepository { repository, database ->
+            val toBeUpdated = MobilePhoneFixture.createRandom()
+            database.insert(toBeUpdated)
 
-        val updated = priorMobilePhone.copy(
-            bookedInstant = createRandomInstant(), personName = "name-${randomId()}"
-        )
+            val expected = toBeUpdated.copy(
+                bookedInstant = createRandomInstant(), personName = "name-${randomId()}"
+            )
 
-        repository.update(updated)
-        assertEquals(updated, repository.get(priorMobilePhone.id).get())
+            assertEquals(expected, repository.update(expected))
+        }
+    }
+
+    @Test
+    fun `return all mobile phones`() {
+        withRepository { repository, _ ->
+            assertEquals(
+                setOf("s9", "s8", "moto6", "plus9", "iphone13", "iphone12", "iphone11", "iphoneX", "n3310"),
+                repository.list().map { it.id }.toSet()
+            )
+        }
     }
 }

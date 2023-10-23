@@ -11,11 +11,12 @@ import java.util.*
 
 interface MobilePhoneRepository {
 
-    suspend fun add(mobilePhone: MobilePhone): MobilePhone
-
     suspend fun get(id: String): Optional<MobilePhone>
 
+    suspend fun list(): Iterable<MobilePhone>
+
     suspend fun update(mobile: MobilePhone): MobilePhone
+
 
     companion object {
 
@@ -38,14 +39,14 @@ interface MobilePhoneRepository {
 
         fun create(database: Database): MobilePhoneRepository = object : MobilePhoneRepository {
 
-            override suspend fun add(mobilePhone: MobilePhone): MobilePhone {
-                database.sequenceOf(MobilePhones).add(convert(mobilePhone))
-                return mobilePhone
+            override suspend fun get(id: String): Optional<MobilePhone> {
+                return Optional.ofNullable(database.sequenceOf(MobilePhones).filter { MobilePhones.id eq id }
+                    .map { convert(it) }
+                    .firstOrNull())
             }
 
-            override suspend fun get(id: String): Optional<MobilePhone> {
-                return Optional.ofNullable(database.sequenceOf(MobilePhones).filter { MobilePhones.id eq id }.map { convert(it) }
-                    .firstOrNull())
+            override suspend fun list(): Iterable<MobilePhone> {
+                return database.sequenceOf(MobilePhones).map { convert(it) }
             }
 
             override suspend fun update(mobile: MobilePhone): MobilePhone {

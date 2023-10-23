@@ -11,55 +11,13 @@ import kotlin.test.assertEquals
 class BookingManagerTest : ChallengeTest() {
 
     data class Context(
-        val manager: BookingManager,
-        val repository: MobilePhoneRepository,
-        val instantFactory: InstantFactory
+        val manager: BookingManager, val repository: MobilePhoneRepository, val instantFactory: InstantFactory
     )
 
     private fun newContext(): Context {
         val repository = mockk<MobilePhoneRepository>()
         val instantFactory = mockk<InstantFactory>()
         return Context(BookingManager.create(repository, instantFactory), repository, instantFactory)
-    }
-
-    @Test
-    fun `should add a mobile phone in repository`() {
-        val (manager, repository, _) = newContext()
-        val now = createRandomInstant()
-        val toBeAdded = MobilePhoneFixture.createRandom().copy(bookedInstant = now, personName = "name-${randomId()}")
-        val expected = toBeAdded.copy(bookedInstant = null, personName = null)
-
-        coEvery { repository.add(expected) } returns expected
-
-        assertEquals(expected, runBlocking { manager.add(toBeAdded) })
-    }
-
-    @Test
-    fun `should check availability (available)`() {
-        val (manager, repository, _) = newContext()
-        val expected = MobilePhoneFixture.createRandom()
-            .copy(bookedInstant = null, personName = null)
-
-        coEvery {
-            repository.get(expected.id)
-        } returns Optional.of(expected)
-
-        assertEquals(MobilePhoneAvailability.Available(expected), runBlocking { manager.available(expected.id) })
-    }
-
-    @Test
-    fun `should check availability (unavailable)`() {
-        val (manager, repository, _) = newContext()
-        val expected = MobilePhoneFixture.createRandom()
-            .copy(bookedInstant = createRandomInstant(), personName = "person-${randomId()}")
-
-        coEvery {
-            repository.get(expected.id)
-        } returns Optional.of(expected)
-
-        assertEquals(
-            MobilePhoneAvailability.Unavailable(expected, expected.bookedInstant!!, expected.personName!!),
-            runBlocking { manager.available(expected.id) })
     }
 
     @Test
@@ -92,12 +50,11 @@ class BookingManagerTest : ChallengeTest() {
         runBlocking {
             val (manager, repository, instantFactory) = newContext()
             val expectedBooking = BookingFixture.createRandom()
-            val mobilePhone = MobilePhoneFixture
-                .createRandom().copy(
-                    id = expectedBooking.mobilePhoneId,
-                    bookedInstant = createRandomInstant(),
-                    personName = "somebody-${randomId()}"
-                )
+            val mobilePhone = MobilePhoneFixture.createRandom().copy(
+                id = expectedBooking.mobilePhoneId,
+                bookedInstant = createRandomInstant(),
+                personName = "somebody-${randomId()}"
+            )
 
             coEvery {
                 repository.get(expectedBooking.mobilePhoneId)
@@ -111,11 +68,9 @@ class BookingManagerTest : ChallengeTest() {
     fun `should return a mobile phone`() {
         runBlocking {
             val (manager, repository, instantFactory) = newContext()
-            val toBeReturned = MobilePhoneFixture
-                .createRandom().copy(
-                    bookedInstant = createRandomInstant(),
-                    personName = "somebody-${randomId()}"
-                )
+            val toBeReturned = MobilePhoneFixture.createRandom().copy(
+                bookedInstant = createRandomInstant(), personName = "somebody-${randomId()}"
+            )
             val expected = toBeReturned.copy(bookedInstant = null, personName = null)
 
             coEvery { repository.get(toBeReturned.id) } returns Optional.of(toBeReturned)
@@ -123,5 +78,34 @@ class BookingManagerTest : ChallengeTest() {
 
             assertEquals(expected, runBlocking { manager.returned(toBeReturned.id) }.get())
         }
+    }
+
+    @Test
+    fun `should list availability of all mobile phones`() {
+        val (manager, repository) = newContext()
+
+        val availableMobilePhone = MobilePhoneFixture.createRandom().copy(
+            bookedInstant = null, personName = null
+        )
+        val unavailableMobilePhone = MobilePhoneFixture.createRandom().copy(
+            bookedInstant = createRandomInstant(), personName = "somebody-${randomId()}"
+        )
+
+        coEvery { repository.list() }.returns(listOf(availableMobilePhone, unavailableMobilePhone))
+
+        val info = runBlocking {
+            manager.info()
+        }
+
+        assertEquals(
+            listOf(
+                MobilePhoneAvailability.Available(availableMobilePhone),
+                MobilePhoneAvailability.Unavailable(
+                    unavailableMobilePhone,
+                    unavailableMobilePhone.bookedInstant!!,
+                    unavailableMobilePhone.personName!!
+                )
+            ), info
+        )
     }
 }
