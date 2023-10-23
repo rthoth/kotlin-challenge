@@ -29,17 +29,8 @@ interface BookingManager {
                 }
 
                 override suspend fun available(mobilePhoneId: String): MobilePhoneAvailability.Type {
-                    return repository.get(mobilePhoneId).map { mobilePhone ->
-                        if (mobilePhone.bookedInstant == null && mobilePhone.personName == null) {
-                            MobilePhoneAvailability.Available(mobilePhone)
-                        } else {
-                            MobilePhoneAvailability.Unavailable(
-                                mobilePhone,
-                                mobilePhone.bookedInstant!!,
-                                mobilePhone.personName!!
-                            )
-                        }
-                    }.getOrElse { MobilePhoneAvailability.NotFound(mobilePhoneId) }
+                    return repository.get(mobilePhoneId).map { MobilePhoneAvailability.of(it) }
+                        .getOrElse { MobilePhoneAvailability.NotFound(mobilePhoneId) }
                 }
 
                 override suspend fun booked(booking: Booking): BookingResult.Type {
