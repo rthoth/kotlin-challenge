@@ -1,32 +1,34 @@
 package challenge
 
-import challenge.repository.BookingRepository
-import java.time.Duration
+import challenge.repository.MobilePhoneRepository
+import kotlinx.coroutines.runBlocking
+import kotlin.jvm.optionals.getOrElse
 
 interface BookingManager {
 
-    suspend fun book(booking: Booking): Booking
+    suspend fun book(booking: Booking): BookingResult.Type
 
     companion object {
 
-        private val DEFAULT_TIME_GAP: Duration = Duration.ofHours(2)
-
-        fun create(bookingRepository: BookingRepository, timeGap: Duration = DEFAULT_TIME_GAP): BookingManager =
+        fun create(repository: MobilePhoneRepository, instantFactory: InstantFactory): BookingManager =
             object : BookingManager {
 
-                override suspend fun book(booking: Booking): Booking {
-                    val previous = bookingRepository.searchByMobilePhone(
-                        booking.mobilePhoneId,
-                        booking.starting,
-                        booking.ending,
-                        timeGap
-                    )
-
-                    if (previous.isEmpty()) {
-                        return bookingRepository.add(booking)
-                    } else {
-                        throw IllegalStateException("It is impossible to make the booking for mobile=${booking.mobilePhoneId}!")
-                    }
+                override suspend fun book(booking: Booking): BookingResult.Type {
+                    return repository.get(booking.mobilePhoneId).map { mobile ->
+                        if (mobile.bookedInstant == null) {
+                            BookingResult.Booked(
+                                runBlocking {
+                                    repository.update(
+                                        mobile.copy(
+                                            bookedInstant = instantFactory.now(), personName = booking.personName
+                                        )
+                                    )
+                                }, booking
+                            )
+                        } else {
+                            BookingResult.Unavailable(mobile, booking)
+                        }
+                    }.getOrElse { BookingResult.NotFound(booking) }
                 }
             }
     }

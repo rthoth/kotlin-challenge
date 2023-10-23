@@ -1,61 +1,70 @@
 package challenge
 
-import challenge.repository.BookingRepository
+import challenge.repository.MobilePhoneRepository
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import java.time.Duration
+import java.util.*
 import kotlin.test.Test
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
+import kotlin.test.assertEquals
 
 class BookingManagerTest : ChallengeTest() {
 
-    data class Context(val manager: BookingManager, val repository: BookingRepository, val timeGap: Duration)
+    data class Context(
+        val manager: BookingManager,
+        val repository: MobilePhoneRepository,
+        val instantFactory: InstantFactory
+    )
 
-    private fun context(): Context {
-        val mock = mockk<BookingRepository>()
-        val timeGap = Duration.ofHours(1)
-        return Context(BookingManager.create(mock, Duration.ofHours(1)), mock, timeGap)
+    private fun newContext(): Context {
+        val repository = mockk<MobilePhoneRepository>()
+        val instantFactory = mockk<InstantFactory>()
+        return Context(BookingManager.create(repository, instantFactory), repository, instantFactory)
     }
 
     @Test
     fun `should accept a booking`() = runBlocking {
-        val (manager, repository, timeGap) = context()
-        val expected = BookingFixture.createRandom()
+        val (manager, repository, instantFactory) = newContext()
+        val expectedBooking = BookingFixture.createRandom()
+        val mobilePhone = MobilePhoneFixture.createRandom()
+            .copy(id = expectedBooking.mobilePhoneId, bookedInstant = null, personName = null)
+
+        val now = createRandomInstant()
+        val expectedMobilePhone = mobilePhone.copy(
+            bookedInstant = now, personName = expectedBooking.personName
+        )
+
+        every { instantFactory.now() } returns now
 
         coEvery {
-            repository.searchByMobilePhone(
-                expected.mobilePhoneId,
-                expected.starting,
-                expected.ending,
-                timeGap
-            )
-        } returns (emptyList())
+            repository.get(expectedBooking.mobilePhoneId)
+        } returns Optional.of(mobilePhone)
 
         coEvery {
-            repository.add(expected)
-        } returns expected
+            repository.update(expectedMobilePhone)
+        } returns expectedMobilePhone
 
-        assertTrue { manager.book(expected) == expected }
+        assertEquals(BookingResult.Booked(expectedMobilePhone, expectedBooking), manager.book(expectedBooking))
     }
 
     @Test
-    fun `should reject a booking`() {
+    fun `should reject a booking when the mobile phone is already booked`() {
         runBlocking {
-            val (manager, repository, timeGap) = context()
-            val expected = BookingFixture.createRandom()
+            val (manager, repository, instantFactory) = newContext()
+            val expectedBooking = BookingFixture.createRandom()
+            val mobilePhone = MobilePhoneFixture
+                .createRandom().copy(
+                    id = expectedBooking.mobilePhoneId,
+                    bookedInstant = createRandomInstant(),
+                    personName = "somebody-${randomId()}"
+                )
 
             coEvery {
-                repository.searchByMobilePhone(
-                    expected.mobilePhoneId,
-                    expected.starting,
-                    expected.ending,
-                    timeGap
-                )
-            } returns (listOf(BookingFixture.createRandom()))
+                repository.get(expectedBooking.mobilePhoneId)
+            } returns Optional.of(mobilePhone)
 
-            assertFailsWith<IllegalStateException> { manager.book(expected) }
+            assertEquals(BookingResult.Unavailable(mobilePhone, expectedBooking), manager.book(expectedBooking))
         }
     }
 }

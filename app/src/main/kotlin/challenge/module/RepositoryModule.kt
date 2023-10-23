@@ -1,6 +1,5 @@
 package challenge.module
 
-import challenge.repository.MemberRepository
 import challenge.repository.MobilePhoneRepository
 import challenge.repository.migrate
 import org.ktorm.database.Database
@@ -13,7 +12,6 @@ class RepositoryModule {
         database
     }
 
-    val memberRepository = MemberRepository.create(database)
     val mobilePhoneRepository = MobilePhoneRepository.create(database)
 
 }
