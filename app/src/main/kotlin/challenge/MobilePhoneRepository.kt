@@ -61,13 +61,6 @@ interface MobilePhoneRepository {
                 }
             }
 
-            private fun convert(mobilePhone: MobilePhone) = StoredEntity {
-                id = mobilePhone.id
-                model = mobilePhone.model
-                bookedInstant = mobilePhone.bookedInstant
-                personName = mobilePhone.personName
-            }
-
             private fun convert(stored: StoredEntity) = MobilePhone(
                 id = stored.id,
                 model = stored.model,
