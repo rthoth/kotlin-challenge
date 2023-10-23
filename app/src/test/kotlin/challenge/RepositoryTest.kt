@@ -1,6 +1,6 @@
-package challenge.repository
+package challenge
 
-import challenge.ChallengeTest
+import challenge.repository.migrate
 import kotlinx.coroutines.runBlocking
 import org.ktorm.database.Database
 

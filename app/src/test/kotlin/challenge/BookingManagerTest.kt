@@ -1,6 +1,5 @@
 package challenge
 
-import challenge.repository.MobilePhoneRepository
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk

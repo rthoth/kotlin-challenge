@@ -1,8 +1,5 @@
-package challenge.repository
+package challenge
 
-import challenge.MobilePhoneFixture
-import challenge.createRandomInstant
-import challenge.randomId
 import org.ktorm.database.Database
 import org.ktorm.dsl.asIterable
 import org.ktorm.dsl.from

@@ -3,7 +3,6 @@ package challenge
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.javadsl.Behaviors
 import akka.http.javadsl.Http
-import challenge.module.RepositoryModule
 
 fun main() {
 

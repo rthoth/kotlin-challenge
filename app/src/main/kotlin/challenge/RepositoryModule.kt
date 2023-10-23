@@ -1,12 +1,11 @@
-package challenge.module
+package challenge
 
-import challenge.repository.MobilePhoneRepository
 import challenge.repository.migrate
 import org.ktorm.database.Database
 
 class RepositoryModule {
 
-    val database = run {
+    private val database = run {
         val database = Database.connect("jdbc:h2:mem:challenge;DB_CLOSE_DELAY=-1")
         migrate(database.url)
         database

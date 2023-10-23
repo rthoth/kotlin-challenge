@@ -1,6 +1,5 @@
-package challenge.repository
+package challenge
 
-import challenge.MobilePhone
 import org.ktorm.database.Database
 import org.ktorm.dsl.eq
 import org.ktorm.entity.*
@@ -45,12 +44,12 @@ interface MobilePhoneRepository {
             }
 
             override suspend fun get(id: String): Optional<MobilePhone> {
-                return Optional.ofNullable(database.sequenceOf(MobilePhones).filter { it.id eq id }.map { convert(it) }
+                return Optional.ofNullable(database.sequenceOf(MobilePhones).filter { MobilePhones.id eq id }.map { convert(it) }
                     .firstOrNull())
             }
 
             override suspend fun update(mobile: MobilePhone): MobilePhone {
-                val stored = database.sequenceOf(MobilePhones).find { it.id eq mobile.id }
+                val stored = database.sequenceOf(MobilePhones).find { MobilePhones.id eq mobile.id }
                 if (stored != null) {
                     stored.bookedInstant = mobile.bookedInstant
                     stored.personName = mobile.personName
