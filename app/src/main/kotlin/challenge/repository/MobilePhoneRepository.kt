@@ -50,7 +50,15 @@ interface MobilePhoneRepository {
             }
 
             override suspend fun update(mobile: MobilePhone): MobilePhone {
-                TODO("Not yet implemented")
+                val stored = database.sequenceOf(MobilePhones).find { it.id eq mobile.id }
+                if (stored != null) {
+                    stored.bookedInstant = mobile.bookedInstant
+                    stored.personName = mobile.personName
+                    stored.flushChanges()
+                    return convert(stored)
+                } else {
+                    throw IllegalStateException("There is no mobile phone ${mobile.id}!")
+                }
             }
 
             private fun convert(mobilePhone: MobilePhone) = StoredEntity {

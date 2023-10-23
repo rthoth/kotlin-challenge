@@ -2,6 +2,7 @@ package challenge
 
 import java.time.Clock
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 interface InstantFactory {
 
@@ -9,6 +10,6 @@ interface InstantFactory {
 
     companion object : InstantFactory {
 
-        override fun now(): Instant = Instant.now(Clock.systemUTC())
+        override fun now(): Instant = Instant.now(Clock.systemUTC()).truncatedTo(ChronoUnit.SECONDS)
     }
 }

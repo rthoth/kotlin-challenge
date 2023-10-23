@@ -1,6 +1,8 @@
 package challenge.repository
 
 import challenge.MobilePhoneFixture
+import challenge.createRandomInstant
+import challenge.randomId
 import org.ktorm.database.Database
 import org.ktorm.dsl.asIterable
 import org.ktorm.dsl.from
@@ -34,5 +36,18 @@ class MobilePhoneRepositoryTest : RepositoryTest<MobilePhoneRepository>() {
         }
 
         assertEquals(expected, repository.get(expected.id).get())
+    }
+
+    @Test
+    fun `should update a mobile phone in database`() = withRepository { repository, database ->
+        val priorMobilePhone = MobilePhoneFixture.createRandom()
+        repository.add(priorMobilePhone)
+
+        val updated = priorMobilePhone.copy(
+            bookedInstant = createRandomInstant(), personName = "name-${randomId()}"
+        )
+
+        repository.update(updated)
+        assertEquals(updated, repository.get(priorMobilePhone.id).get())
     }
 }
