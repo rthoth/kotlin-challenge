@@ -17,6 +17,7 @@ plugins {
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
+    maven("https://dl.bintray.com/aafanasev/maven")
 }
 
 object Version {
@@ -28,6 +29,8 @@ object Version {
     val h2 = "2.2.220"
     val flyway = "9.22.3"
     val mockK = "1.13.8"
+    val fonoapi = "1.0"
+    val ktor = "2.3.5"
 }
 
 dependencies {
@@ -42,6 +45,10 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.ktorm:ktorm-core:${Version.ktorn}")
     implementation("com.h2database:h2:${Version.h2}")
+    implementation("io.ktor:ktor-client-core:${Version.ktor}")
+    implementation("io.ktor:ktor-client-cio:${Version.ktor}")
+    implementation("io.ktor:ktor-client-content-negotiation:${Version.ktor}")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:${Version.ktor}")
     implementation("org.flywaydb:flyway-core:${Version.flyway}")
     testImplementation("io.mockk:mockk:${Version.mockK}")
 

@@ -6,8 +6,10 @@ import akka.http.javadsl.server.Directives.complete
 import akka.http.javadsl.server.Directives.entity
 import akka.http.javadsl.server.Route
 import challenge.*
+import challenge.fonoapi.FonoapiService
 import java.time.Instant
 import java.util.concurrent.Executor
+import kotlin.jvm.optionals.getOrElse
 
 interface BookingHandler {
 
@@ -35,16 +37,29 @@ interface BookingHandler {
 
         data class Returned(val mobilePhoneId: String)
 
+        sealed interface FonoapiDeviceInfo
+
+        data class FilledFonoapiDeviceInfo(
+            val technology: String,
+            val _2g_bands: String,
+            val _3g_bands: String,
+            val _4g_bands: String
+        ) : FonoapiDeviceInfo
+
+        data object NoFonoapiDeviceInfo : FonoapiDeviceInfo
+
         sealed class Availability(
             val mobilePhoneId: String,
             val model: String,
-            val available: Boolean
+            val available: Boolean,
+            val fonoapi: FonoapiDeviceInfo
         )
 
-        class MobilePhoneAvailable(mobilePhone: MobilePhone) : Availability(mobilePhone.id, mobilePhone.model, true)
+        class MobilePhoneAvailable(mobilePhone: MobilePhone, deviceInfo: FonoapiDeviceInfo) :
+            Availability(mobilePhone.id, mobilePhone.model, true, deviceInfo)
 
-        class MobilePhoneUnavailable(mobilePhone: MobilePhone) :
-            Availability(mobilePhone.id, mobilePhone.model, false) {
+        class MobilePhoneUnavailable(mobilePhone: MobilePhone, deviceInfo: FonoapiDeviceInfo) :
+            Availability(mobilePhone.id, mobilePhone.model, false, deviceInfo) {
             val bookedAt = mobilePhone.bookedInstant
             val bookedBy = mobilePhone.personName
         }
@@ -54,6 +69,8 @@ interface BookingHandler {
             object : HttpHandler(executor), BookingHandler {
 
                 private val bookingManager: BookingManager = managerModule.bookingManager
+
+                private val fonoapiService: FonoapiService = managerModule.fonoapiService
 
                 override fun booked(mobilePhoneId: String): Route {
                     return entity(Jackson.unmarshaller(BookMobilePhone::class.java)) { addBooking ->
@@ -87,12 +104,26 @@ interface BookingHandler {
                 override fun info(): Route {
                     return completeWithSuspend(
                         block = {
-                            bookingManager.info().map {
-                                when (it) {
-                                    is MobilePhoneAvailability.Available -> MobilePhoneAvailable(it.mobilePhone)
-                                    is MobilePhoneAvailability.Unavailable -> MobilePhoneUnavailable(it.mobilePhone)
+                            bookingManager.info()
+                                .map {
+                                    it to fonoapiService.get(it.mobilePhone).map { deviceInfo ->
+                                        FilledFonoapiDeviceInfo(
+                                            technology = deviceInfo.technology,
+                                            _2g_bands = deviceInfo._2g_bands,
+                                            _3g_bands = deviceInfo._3g_bands,
+                                            _4g_bands = deviceInfo._4g_bands
+                                        )
+                                    }.getOrElse { NoFonoapiDeviceInfo }
                                 }
-                            }
+                                .map { (availability, deviceInfo) ->
+                                    when (availability) {
+                                        is MobilePhoneAvailability.Available ->
+                                            MobilePhoneAvailable(availability.mobilePhone, deviceInfo)
+
+                                        is MobilePhoneAvailability.Unavailable ->
+                                            MobilePhoneUnavailable(availability.mobilePhone, deviceInfo)
+                                    }
+                                }
                         },
                         onSuccess = {
                             complete(StatusCodes.OK, it, jacksonMarshaller())

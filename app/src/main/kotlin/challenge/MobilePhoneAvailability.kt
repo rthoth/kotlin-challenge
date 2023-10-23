@@ -2,10 +2,12 @@ package challenge
 
 object MobilePhoneAvailability {
 
-    sealed interface Type
+    sealed interface Type {
+        val mobilePhone: MobilePhone
+    }
 
-    data class Available(val mobilePhone: MobilePhone) : Type
-    data class Unavailable(val mobilePhone: MobilePhone) : Type
+    data class Available(override val mobilePhone: MobilePhone) : Type
+    data class Unavailable(override val mobilePhone: MobilePhone) : Type
 
     fun of(mobilePhone: MobilePhone): Type {
         return if (mobilePhone.bookedInstant == null || mobilePhone.personName == null) {
